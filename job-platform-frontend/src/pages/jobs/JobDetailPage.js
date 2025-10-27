@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, Modal, Form } from 'react-bootstrap';
 import { jobsAPI, applicationsAPI, favoritesAPI } from '../../services/api';
@@ -20,12 +20,8 @@ const JobDetailPage = () => {
   });
   const [applying, setApplying] = useState(false);
 
-  useEffect(() => {
-    loadJob();
-    checkFavorite();
-  }, [id]);
-
-  const loadJob = async () => {
+  // Déplacer les fonctions dans useCallback pour éviter les recréations
+  const loadJob = useCallback(async () => {
     try {
       setLoading(true);
       const response = await jobsAPI.getById(id);
@@ -37,9 +33,9 @@ const JobDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]); // id est une dépendance
 
-  const checkFavorite = async () => {
+  const checkFavorite = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -48,7 +44,12 @@ const JobDetailPage = () => {
     } catch (error) {
       console.error('Error checking favorite:', error);
     }
-  };
+  }, [id, user]); // id et user sont des dépendances
+
+  useEffect(() => {
+    loadJob();
+    checkFavorite();
+  }, [loadJob, checkFavorite]); // Maintenant les dépendances sont correctes
 
   const handleFavoriteToggle = async () => {
     if (!user) {
