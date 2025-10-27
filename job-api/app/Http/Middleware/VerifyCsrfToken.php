@@ -1,4 +1,5 @@
 <?php
+// app/Http/Middleware/VerifyCsrfToken.php
 
 namespace App\Http\Middleware;
 
@@ -12,6 +13,9 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        'api/*',
+        'sanctum/csrf-cookie',
+        'login',
+        'register'
     ];
 }

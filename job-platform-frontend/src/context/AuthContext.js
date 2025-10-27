@@ -1,3 +1,4 @@
+// src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
@@ -16,14 +17,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        const response = await authAPI.getUser();
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      // Ne pas supprimer le token ici, laisser l'intercepteur gérer
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (credentials) => {
     try {
@@ -36,9 +46,12 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Erreur de connexion';
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Erreur de connexion' 
+        error: errorMessage 
       };
     }
   };
@@ -54,9 +67,12 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      const errorMessage = error.response?.data?.errors || 
+                          error.response?.data?.message || 
+                          'Erreur d\'inscription';
       return { 
         success: false, 
-        error: error.response?.data?.errors || 'Erreur d\'inscription' 
+        error: errorMessage 
       };
     }
   };

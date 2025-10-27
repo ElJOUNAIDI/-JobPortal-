@@ -1,22 +1,49 @@
+// src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000';
 
+// Instance axios pour les requêtes API
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/api`,
+  withCredentials: true, // IMPORTANT: pour les cookies de session
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
-// Intercepteur pour ajouter le token aux requêtes
+// Instance séparée pour Sanctum (CSRF)
+const sanctum = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+// Fonction pour récupérer le token CSRF
+const getCsrfToken = async () => {
+  try {
+    await sanctum.get('/sanctum/csrf-cookie');
+    console.log('CSRF token obtained successfully');
+  } catch (error) {
+    console.error('Error getting CSRF token:', error);
+  }
+};
+
+// Intercepteur pour les requêtes API
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Pour les requêtes non-GET, s'assurer d'avoir un token CSRF
+    if (config.method !== 'get') {
+      await getCsrfToken();
+    }
+    
+    // Ajouter le token d'authentification
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
@@ -24,11 +51,12 @@ api.interceptors.request.use(
   }
 );
 
-// Intercepteur pour gérer les erreurs
+// Intercepteur pour les réponses
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 419) {
+      console.log('Authentication error, redirecting to login...');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -38,8 +66,15 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  register: (userData) => api.post('/register', userData),
-  login: (credentials) => api.post('/login', credentials),
+  // Récupérer d'abord le CSRF token, puis faire la requête
+  login: async (credentials) => {
+    await getCsrfToken();
+    return api.post('/login', credentials);
+  },
+  register: async (userData) => {
+    await getCsrfToken();
+    return api.post('/register', userData);
+  },
   logout: () => api.post('/logout'),
   getUser: () => api.get('/user'),
 };
@@ -72,8 +107,6 @@ export const adminAPI = {
   getAllJobs: () => api.get('/admin/jobs'),
   getAllApplications: () => api.get('/admin/applications'),
   getStatistics: () => api.get('/admin/statistics'),
-  deleteJob: (id) => api.delete(`/admin/jobs/${id}`),
-  deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };
 
 export default api;
