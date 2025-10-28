@@ -9,10 +9,45 @@ const Home = () => {
   return (
     <>
       {/* Hero Section */}
-      <section className="hero-section text-white">
-        <Container>
+      <section className="hero-section position-relative text-white">
+        {/* === SLIDER EN FOND === */}
+        <div
+          id="carouselHero"
+          className="carousel slide position-absolute top-0 start-0 w-100 h-100"
+          data-bs-ride="carousel"
+        >
+          <div className="carousel-inner h-100">
+            <div className="carousel-item active h-100">
+              <img
+                src="/images/jobs1.webp"
+                className="d-block w-100 h-100 object-fit-cover"
+                alt="Job 1"
+              />
+            </div>
+            <div className="carousel-item h-100">
+              <img
+                src="/images/job3.jpg"
+                className="d-block w-100 h-100 object-fit-cover"
+                alt="Job 2"
+              />
+            </div>
+            <div className="carousel-item h-100">
+              <img
+                src="/images/jobs2.jpeg"
+                className="d-block w-100 h-100 object-fit-cover"
+                alt="Job 3"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* === OVERLAY POUR FONCÉR L’IMAGE === */}
+        <div className="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-50"></div>
+
+        {/* === CONTENU AU PREMIER PLAN === */}
+        <Container className="position-relative z-3 py-5">
           <Row className="min-vh-70 align-items-center">
-            <Col lg={6}>
+            <Col lg={8}>
               <h1 className="display-4 fw-bold mb-4">
                 Trouvez le job de vos rêves
               </h1>
@@ -52,14 +87,10 @@ const Home = () => {
                 )}
               </div>
             </Col>
-            <Col lg={6}>
-              <div className="text-center">
-                <i className="bi bi-search display-1 opacity-50"></i>
-              </div>
-            </Col>
           </Row>
         </Container>
       </section>
+
 
       {/* Features Section */}
       <section className="py-5">
