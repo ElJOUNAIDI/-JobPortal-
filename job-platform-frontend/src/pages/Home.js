@@ -19,14 +19,15 @@ const Home = () => {
           <div className="carousel-inner h-100">
             <div className="carousel-item active h-100">
               <img
-                src="/images/jobs1.webp"
+              src="/images/job3.jpg"
+                
                 className="d-block w-100 h-100 object-fit-cover"
                 alt="Job 1"
               />
             </div>
             <div className="carousel-item h-100">
               <img
-                src="/images/job3.jpg"
+                src="/images/jobs1.webp"
                 className="d-block w-100 h-100 object-fit-cover"
                 alt="Job 2"
               />
